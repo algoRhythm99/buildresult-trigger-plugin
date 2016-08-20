@@ -4,12 +4,11 @@ import antlr.ANTLRException;
 import hudson.Extension;
 import hudson.Util;
 import hudson.console.AnnotatedLargeText;
-import hudson.matrix.MatrixConfiguration;
+import hudson.Extension;
 import hudson.model.*;
 import hudson.model.listeners.ItemListener;
 import hudson.security.ACL;
 import hudson.util.SequentialExecutionQueue;
-import jenkins.model.Jenkins;
 import org.acegisecurity.context.SecurityContext;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.apache.commons.jelly.XMLOutput;
@@ -199,7 +198,15 @@ public class BuildResultTrigger extends AbstractTriggerByFullContext<BuildResult
     }
 
     private boolean isValidBuildResultProject(AbstractProject item) {
-        return item != null && !(item instanceof MatrixConfiguration);
+        if (null == item) {
+            return false;
+        } else if (Jenkins.getInstance().getPlugin("matrix-plugin").getWrapper().isEnabled()) {
+            try {
+                return !Class.forName("hudson.matrix.MatrixConfiguration").isInstance(item);
+            } catch (ClassNotFoundException e) {
+            }
+        }
+        return true;
     }
 
     @Override
